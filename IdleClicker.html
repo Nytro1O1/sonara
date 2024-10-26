@@ -1,0 +1,2074 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Enhanced Idle Clicker Game</title>
+    <!-- Include Font Awesome for Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Include Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Include Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Water Effect Background */
+        .water-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Replaced background image to prevent 403 error */
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+            z-index: -1;
+            opacity: 0.1;
+        }
+
+        /* Game Container */
+        .game-container {
+            background-color: rgba(30, 30, 30, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            padding: 40px;
+            width: 95%;
+            max-width: 1300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #2c2c2c;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #777;
+        }
+
+        /* Header */
+        .header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+            /* Ensure header is above level display */
+        }
+
+        .header .title {
+            font-size: 48px;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .header .title:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px #ff9800;
+        }
+
+        .header .controls {
+            display: flex;
+            gap: 15px;
+            position: relative;
+        }
+
+        .header .control-button {
+            font-size: 24px;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.3s ease, box-shadow 0.3s ease;
+            padding: 10px;
+            border-radius: 50%;
+        }
+
+        .header .control-button:hover {
+            color: #ff9800;
+            box-shadow: 0 0 10px #ff9800;
+        }
+
+        /* Settings Modal */
+        .settings-modal {
+            display: none;
+            /* Hidden by default */
+            position: fixed;
+            z-index: 3000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .settings-content {
+            background-color: #2c2c2c;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+            animation: fadeIn 0.5s;
+            color: #e0e0e0;
+            text-align: center;
+        }
+
+        .close-settings {
+            color: #e0e0e0;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-settings:hover {
+            color: #ff9800;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Achievements Modal */
+        .achievements-modal {
+            display: none;
+            /* Hidden by default */
+            position: fixed;
+            z-index: 3000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .achievements-content {
+            background-color: #333333;
+            /* Changed to darker gray to match orange theme */
+            padding: 30px;
+            border-radius: 15px;
+            width: 95%;
+            max-width: 800px;
+            position: relative;
+            animation: fadeIn 0.5s;
+            color: #e0e0e0;
+        }
+
+        .close-achievements {
+            color: #e0e0e0;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-achievements:hover {
+            color: #ff9800;
+        }
+
+        .achievements-title {
+            font-size: 32px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #ff9800;
+        }
+
+        .achievements-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .achievement-item {
+            background-color: #3f51b5;
+            border-radius: 15px;
+            padding: 20px;
+            width: 180px;
+            color: #ffffff;
+            position: relative;
+            opacity: 0.8;
+            transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .achievement-item.unlocked {
+            opacity: 1;
+            transform: scale(1.05);
+            background-color: #ff9800;
+            /* Changed to orange */
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .achievement-item.secret {
+            background-color: #000000;
+            /* Black for secret achievements */
+        }
+
+        .achievement-icon {
+            font-size: 28px;
+            color: #ffffff;
+        }
+
+        .achievement-title {
+            font-size: 18px;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .achievement-description {
+            font-size: 14px;
+            color: #bdbdbd;
+            text-align: center;
+        }
+
+        /* Resource Display */
+        .resource-display {
+            font-size: 32px;
+            margin-bottom: 30px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .resource-display:hover {
+            box-shadow: 0 0 15px #ff9800;
+            border-radius: 10px;
+        }
+
+        .resource-display i {
+            color: #ff9800;
+            transition: transform 0.3s ease;
+        }
+
+        .resource-display:hover i {
+            transform: rotate(20deg);
+        }
+
+        /* Click Button */
+        .click-button {
+            background-color: #ff5722;
+            border: none;
+            border-radius: 50%;
+            width: 200px;
+            height: 200px;
+            font-size: 28px;
+            color: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: pulse 2s infinite;
+            z-index: 1;
+            /* Ensure it's above other elements */
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 20px rgba(255, 87, 34, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 87, 34, 0);
+            }
+        }
+
+        .click-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .click-button:hover {
+            background-color: #e64a19;
+        }
+
+        .click-button i {
+            font-size: 48px;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .click-button:hover i {
+            transform: rotate(15deg);
+            color: #ffe0b2;
+        }
+
+        /* Upgrades Section */
+        .upgrades-section {
+            margin-top: 50px;
+            width: 100%;
+        }
+
+        .upgrades-title {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #ffffff;
+            text-align: center;
+            position: relative;
+        }
+
+        .upgrades-title::after {
+            content: "";
+            position: absolute;
+            width: 60px;
+            height: 4px;
+            background-color: #ff9800;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+
+        .upgrades {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 10px;
+            position: relative;
+        }
+
+        .upgrade-card {
+            background-color: #2c2c2c;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            padding: 25px;
+            width: 220px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            cursor: pointer;
+            overflow: visible;
+            /* Allow scaling without clipping */
+            z-index: 0;
+            /* Base z-index */
+            margin-bottom: 20px;
+            /* Added space to prevent clipping */
+        }
+
+        .upgrade-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            border: 2px solid #ff9800;
+            z-index: 10;
+            /* Bring to front when hovered */
+        }
+
+        .upgrade-icon {
+            font-size: 36px;
+            color: #ff9800;
+            margin-bottom: 15px;
+            transition: color 0.3s ease;
+        }
+
+        .upgrade-card:hover .upgrade-icon {
+            color: #ffe0b2;
+        }
+
+        .upgrade-title {
+            font-size: 22px;
+            margin-bottom: 10px;
+            color: #ffffff;
+            text-align: center;
+            transition: color 0.3s ease;
+        }
+
+        .upgrade-card:hover .upgrade-title {
+            color: #ff9800;
+        }
+
+        .upgrade-description {
+            font-size: 14px;
+            margin-bottom: 15px;
+            color: #bdbdbd;
+            text-align: center;
+        }
+
+        .upgrade-cost {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+
+        .upgrade-level {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #e0e0e0;
+        }
+
+        .upgrade-button {
+            background-color: #4caf50;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #ffffff;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .upgrade-button:disabled {
+            background-color: #9e9e9e;
+            cursor: not-allowed;
+        }
+
+        .upgrade-button:hover:not(:disabled) {
+            background-color: #43a047;
+        }
+
+        /* Achievements Button Counter */
+        .achievements-button-counter {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ff5722;
+            color: #ffffff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            font-weight: bold;
+        }
+
+        /* Achievement Popup */
+        .achievement-popup {
+            position: fixed;
+            top: 20px;
+            /* Moved to top-left */
+            left: 20px;
+            background-color: #ff9800;
+            color: #ffffff;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: opacity 0.5s ease;
+            opacity: 0;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 300px;
+            white-space: pre-line;
+        }
+
+        .achievement-popup.show {
+            opacity: 1;
+        }
+
+        .popup-title {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .popup-description {
+            font-size: 16px;
+            text-align: center;
+        }
+
+        /* Level Display */
+        .level-display {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 152, 0, 0.8);
+            color: #ffffff;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 24px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            z-index: 2;
+            /* Above other elements */
+            width: 50%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .level-display:hover {
+            background-color: #ff9800;
+            transform: translateX(-50%) scale(1.05);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background-color: #555;
+            border-radius: 10px;
+            width: 100%;
+            height: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #4caf50, #81c784);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 14px;
+            color: #ffffff;
+            line-height: 20px;
+        }
+
+        /* Rebirth Modal */
+        .rebirth-modal {
+            display: none;
+            /* Hidden by default */
+            position: fixed;
+            z-index: 4000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .rebirth-content {
+            background-color: #4caf50;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            animation: fadeIn 0.5s;
+            color: #ffffff;
+            text-align: center;
+        }
+
+        .close-rebirth {
+            color: #ffffff;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-rebirth:hover {
+            color: #ff9800;
+        }
+
+        /* Rebirth Button */
+        .rebirth-button {
+            background-color: #ffffff;
+            color: #4caf50;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .rebirth-button:hover {
+            background-color: #ff9800;
+            color: #ffffff;
+        }
+
+        /* Special Title Display */
+        #special-title {
+            position: absolute;
+            top: 70px;
+            font-size: 20px;
+            color: #ff9800;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Rebirth Counter Display */
+        #rebirth-counter {
+            position: absolute;
+            top: 110px;
+            right: 20px;
+            /* Moved to the top-right corner */
+            background-color: rgba(255, 0, 0, 0.8);
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 18px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            z-index: 2;
+            /* Above other elements */
+        }
+
+        #rebirth-counter:hover {
+            background-color: #ff5722;
+            transform: scale(1.05);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .game-container {
+                padding: 30px;
+            }
+
+            .header .title {
+                font-size: 36px;
+            }
+
+            .click-button {
+                width: 160px;
+                height: 160px;
+                font-size: 24px;
+            }
+
+            .upgrade-card,
+            .achievement-item {
+                width: 180px;
+            }
+
+            .level-display {
+                font-size: 20px;
+                padding: 10px 25px;
+                width: 60%;
+            }
+
+            #rebirth-counter {
+                top: 100px;
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px;
+            }
+
+            .header .title {
+                font-size: 28px;
+            }
+
+            .click-button {
+                width: 120px;
+                height: 120px;
+                font-size: 20px;
+            }
+
+            .upgrade-card,
+            .achievement-item {
+                width: 160px;
+            }
+
+            .achievement-popup {
+                width: 90%;
+                left: 5%;
+                /* Adjusted for top-left positioning */
+                top: 10px;
+            }
+
+            .achievements-title {
+                font-size: 24px;
+            }
+
+            .rebirth-content {
+                padding: 20px;
+            }
+
+            .level-display {
+                font-size: 18px;
+                padding: 8px 20px;
+                width: 70%;
+            }
+
+            #rebirth-counter {
+                top: 100px;
+                font-size: 16px;
+            }
+        }
+
+        /* Ripple Keyframes */
+        @keyframes ripple {
+            from {
+                transform: scale(0);
+                opacity: 0.4;
+            }
+
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Water Effect Background -->
+    <div class="water-effect"></div>
+
+    <div class="game-container">
+        <!-- Special Title Display -->
+        <div id="special-title"></div>
+        <!-- Rebirth Counter Display -->
+        <div id="rebirth-counter">Rebirths: 0</div>
+
+        <!-- Level Display with Progress Bar -->
+        <div class="level-display" id="level-display">
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+                <div class="progress-text" id="progress-text">0 / 100 EXP</div>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <div class="header">
+            <div class="title">Idle Clicker</div>
+            <div class="controls">
+                <div class="control-button" id="achievements-button" title="Achievements">
+                    <i class="fas fa-trophy"></i>
+                    <div class="achievements-button-counter" id="achievements-counter" style="display: none;">1</div>
+                </div>
+                <div class="control-button" id="settings-button" title="Settings">
+                    <i class="fas fa-cog"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div class="settings-modal" id="settings-modal">
+            <div class="settings-content">
+                <span class="close-settings" id="close-settings">&times;</span>
+                <h2>Settings</h2>
+                <div style="margin-top:20px;">
+                    <button class="upgrade-button" id="reset-game-button" style="background-color: #f44336;">
+                        <i class="fas fa-redo"></i> Reset Game
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Achievements Modal -->
+        <div class="achievements-modal" id="achievements-modal">
+            <div class="achievements-content">
+                <span class="close-achievements" id="close-achievements">&times;</span>
+                <div class="achievements-title">Achievements</div>
+                <div class="achievements-list" id="achievements-list">
+                    <!-- Achievements will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Rebirth Modal -->
+        <div class="rebirth-modal" id="rebirth-modal">
+            <div class="rebirth-content">
+                <span class="close-rebirth" id="close-rebirth">&times;</span>
+                <h2>Rebirth</h2>
+                <p>Congratulations! You've reached Level 100.</p>
+                <p>Perform a rebirth to reset your progress in exchange for powerful permanent bonuses.</p>
+                <button class="rebirth-button" id="rebirth-button">
+                    <i class="fas fa-recycle"></i> Rebirth
+                </button>
+            </div>
+        </div>
+
+        <!-- Resource Display -->
+        <div class="resource-display">
+            <i class="fas fa-coins"></i>
+            Coins: <span id="coin-count">0</span>
+            &nbsp;&nbsp;&nbsp;
+            <i class="fas fa-star"></i>
+            EXP: <span id="exp-count">0</span>
+        </div>
+
+        <!-- Click Button with Water Ripple Effect -->
+        <div style="position: relative;">
+            <button class="click-button" id="click-button">
+                <i class="fas fa-hand-pointer"></i>
+            </button>
+        </div>
+
+        <!-- Upgrades Section -->
+        <div class="upgrades-section">
+            <div class="upgrades-title">Upgrades</div>
+            <div class="upgrades" id="upgrades-container">
+                <!-- Upgrade Cards will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Achievement Popup -->
+    <div class="achievement-popup" id="achievement-popup">
+        <div class="popup-title">Achievement Unlocked!</div>
+        <div class="popup-description" id="popup-description">You achieved something!</div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                // Game Variables
+                let coins = 0;
+                let exp = 0;
+                let coinsPerClick = 1;
+                let coinsPerSecond = 0;
+                let level = 1;
+                let rebirths = 0;
+                let rebirthBonus = 1; // Multiplier from rebirths
+                let specialTitle = ""; // Player's special title from secret achievements
+                let requiredExp = 100; // Starting EXP required for level 2
+
+                const upgrades = [
+                    // Tier 1 Upgrades
+                    {
+                        id: 'upgrade1',
+                        name: 'Better Clicks',
+                        description: '1.2x coins earned per click.',
+                        baseCost: 100,
+                        cost: 100,
+                        level: 0,
+                        type: 'click', // 'click' or 'auto'
+                        multiplier: 1.2, // For 'click' type
+                        addition: 0, // For 'auto' type
+                        icon: 'fas fa-hand-pointer',
+                        tier: 1,
+                        prerequisite: null, // No prerequisite
+                        maxLevel: 10 // Maximum level before upgrade to next tier
+                    },
+                    {
+                        id: 'upgrade2',
+                        name: 'Auto Miner',
+                        description: 'Automatically earns +1 coin per second.',
+                        baseCost: 150,
+                        cost: 150,
+                        level: 0,
+                        type: 'auto',
+                        multiplier: 1, // Not used for 'auto' type
+                        addition: 1, // Coins per second added per level
+                        icon: 'fas fa-robot',
+                        tier: 1,
+                        prerequisite: null,
+                        maxLevel: 10
+                    },
+                    {
+                        id: 'upgrade3',
+                        name: 'Supreme Clicks',
+                        description: '1.5x the coins earned per click.',
+                        baseCost: 20000,
+                        cost: 300,
+                        level: 0,
+                        type: 'click',
+                        multiplier: 1.5,
+                        addition: 0,
+                        icon: 'fas fa-bolt',
+                        tier: 2,
+                        prerequisite: 'upgrade1', // Requires upgrade1
+                        maxLevel: 25
+                    },
+                    {
+                        id: 'upgrade4',
+                        name: 'Double Auto',
+                        description: 'Doubles the coins earned per second.',
+                        baseCost: 450,
+                        cost: 450,
+                        level: 0,
+                        type: 'auto',
+                        multiplier: 2, // Not used
+                        addition: 2, // Coins per second added per level
+                        icon: 'fas fa-cogs',
+                        tier: 2,
+                        prerequisite: 'upgrade2', // Requires upgrade2
+                        maxLevel: 25
+                    },
+                    {
+                        id: 'upgrade5',
+                        name: 'Ultimate Clicks',
+                        description: 'Double the coins earned per click.',
+                        baseCost: 27000000000,
+                        cost: 900,
+                        level: 0,
+                        type: 'click',
+                        multiplier: 2,
+                        addition: 0,
+                        icon: 'fas fa-fire',
+                        tier: 3,
+                        prerequisite: 'upgrade3', // Requires upgrade3
+                        maxLevel: 50
+                    },
+                    {
+                        id: 'upgrade6',
+                        name: 'Triple Auto',
+                        description: 'Triples the coins earned per second.',
+                        baseCost: 1350,
+                        cost: 1350,
+                        level: 0,
+                        type: 'auto',
+                        multiplier: 3, // Not used
+                        addition: 3, // Coins per second added per level
+                        icon: 'fas fa-industry',
+                        tier: 4,
+                        prerequisite: 'upgrade8', // Requires upgrade4
+                        maxLevel: 1
+                    },
+                    {
+                        id: 'upgrade7',
+                        name: 'Click Boost',
+                        description: '2.5x coins earned per click.',
+                        baseCost: 200,
+                        cost: 200,
+                        level: 0,
+                        type: 'click',
+                        multiplier: 2.5,
+                        addition: 0,
+                        icon: 'fas fa-mouse-pointer',
+                        tier: 4,
+                        prerequisite: "upgrade5",
+                        maxLevel: 100
+                    },
+                    {
+                        id: 'upgrade8',
+                        name: 'Coin Magnet',
+                        description: 'Automatically earns +2 coins per second.',
+                        baseCost: 300,
+                        cost: 300,
+                        level: 0,
+                        type: 'auto',
+                        multiplier: 1,
+                        addition: 2,
+                        icon: 'fas fa-magnet',
+                        tier: 3,
+                        prerequisite: "upgrade4",
+                        maxLevel: 25
+                    },
+                    {
+                        id: 'upgrade9',
+                        name: 'Mega Clicks',
+                        description: '3x the coins earned per click.',
+                        baseCost: 50000,
+                        cost: 500,
+                        level: 0,
+                        type: 'click',
+                        multiplier: 3,
+                        addition: 0,
+                        icon: 'fas fa-hand-rock',
+                        tier: 5,
+                        prerequisite: 'upgrade7', // Requires upgrade7
+                        maxLevel: 175
+                    },
+                    {
+                        id: 'upgrade10',
+                        name: 'Super Magnet',
+                        description: 'Automatically earns +5 coins per second.',
+                        baseCost: 600,
+                        cost: 600,
+                        level: 0,
+                        type: 'auto',
+                        multiplier: 1,
+                        addition: 5,
+                        icon: 'fas fa-magnet',
+                        tier: 4,
+                        prerequisite: 'upgrade8', // Requires upgrade8
+                        maxLevel: 50
+                    },
+                    {
+                        id: 'upgrade11',
+                        name: 'Hyper Clicks',
+                        description: '3.5x the coins earned per click.',
+                        baseCost: 100000,
+                        cost: 1000,
+                        level: 0,
+                        type: 'click',
+                        multiplier: 3.5,
+                        addition: 0,
+                        icon: 'fas fa-hand-sparkles',
+                        tier: 6,
+                        prerequisite: 'upgrade9', // Requires upgrade9
+                        maxLevel: 250
+                    },
+                    {
+                        id: 'upgrade12',
+                        name: 'Ultra Magnet',
+                        description: 'Automatically earns 10 coins per second.',
+                        baseCost: 1500,
+                        cost: 1500,
+                        level: 0,
+                        type: 'auto',
+                        multiplier: 1,
+                        addition: 10,
+                        icon: 'fas fa-magnet',
+                        tier: 5,
+                        prerequisite: 'upgrade10', // Requires upgrade10
+                        maxLevel: 100
+                    },
+                    {
+                        id: 'upgrade13',
+                        name: 'Quantum Clicks',
+                        description: '4x the coins earned per click.',
+                        baseCost: 500000,
+                        cost: 2000,
+                        level: 0,
+                        type: 'click',
+                        multiplier: 4,
+                        addition: 0,
+                        icon: 'fas fa-hand-paper',
+                        tier: 7,
+                        prerequisite: 'upgrade11', // Requires upgrade11
+                        maxLevel: 500
+                    },
+                    {
+                        id: 'upgrade14',
+                        name: 'Quantum Magnet',
+                        description: 'Automatically earns 20 coins per second.',
+                        baseCost: 3000,
+                        cost: 3000,
+                        level: 0,
+                        type: 'auto',
+                        multiplier: 1,
+                        addition: 20,
+                        icon: 'fas fa-magnet',
+                        tier: 6,
+                        prerequisite: 'upgrade12', // Requires upgrade12
+                        maxLevel: 175
+                    },
+                    // Add more tiers as needed
+                ];
+
+                const achievements = [
+                    // Regular Achievements
+                    {
+                        id: 'achv1',
+                        title: 'First Click',
+                        description: 'Earn 10 coins.',
+                        condition: () => coins >= 10,
+                        unlocked: false,
+                        icon: 'fas fa-hand-pointer',
+                        secret: false,
+                        reward: 'No special title'
+                    },
+                    {
+                        id: 'achv2',
+                        title: 'Click Enthusiast',
+                        description: 'Earn 100 coins.',
+                        condition: () => coins >= 100,
+                        unlocked: false,
+                        icon: 'fas fa-fire',
+                        secret: false,
+                        reward: 'No special title'
+                    },
+                    {
+                        id: 'achv3',
+                        title: 'Rich Start',
+                        description: 'Earn 500 coins.',
+                        condition: () => coins >= 500,
+                        unlocked: false,
+                        icon: 'fas fa-coins',
+                        secret: false,
+                        reward: 'No special title'
+                    },
+                    {
+                        id: 'achv4',
+                        title: 'Millionaire',
+                        description: 'Earn 1,000,000 coins.',
+                        condition: () => coins >= 1000000,
+                        unlocked: false,
+                        icon: 'fas fa-university',
+                        secret: false,
+                        reward: 'No special title'
+                    },
+                    {
+                        id: 'achv5',
+                        title: 'Upgrade Hunter',
+                        description: 'Purchase 5 upgrades.',
+                        condition: () => upgrades.filter(upg => upg.level > 0).length >= 5,
+                        unlocked: false,
+                        icon: 'fas fa-search',
+                        secret: false,
+                        reward: 'No special title'
+                    },
+                    {
+                        id: 'achv6',
+                        title: 'Automation Expert',
+                        description: 'Have 10 coins per second.',
+                        condition: () => coinsPerSecond >= 10,
+                        unlocked: false,
+                        icon: 'fas fa-robot',
+                        secret: false,
+                        reward: 'No special title'
+                    },
+                    {
+                        id: 'achv7',
+                        title: 'Click Master',
+                        description: 'Have coins per click of 100.',
+                        condition: () => coinsPerClick >= 100,
+                        unlocked: false,
+                        icon: 'fas fa-bolt',
+                        secret: false,
+                        reward: 'No special title'
+                    },
+                    {
+                        id: 'achv8',
+                        title: 'Super Rich',
+                        description: 'Earn 10,000 coins.',
+                        condition: () => coins >= 10000,
+                        unlocked: false,
+                        icon: 'fas fa-gem',
+                        secret: false,
+                        reward: 'No special title'
+                    },
+                    {
+                        id: 'achv9',
+                        title: 'Ultra Miner',
+                        description: 'Have 100 coins per second.',
+                        condition: () => coinsPerSecond >= 100,
+                        unlocked: false,
+                        icon: 'fas fa-industry',
+                        secret: false,
+                        reward: 'No special title'
+                    },
+                    {
+                        id: 'achv10',
+                        title: 'Grand Master',
+                        description: 'Earn 1,000,000,000 coins.',
+                        condition: () => coins >= 1000000000,
+                        unlocked: false,
+                        icon: 'fas fa-crown',
+                        secret: false,
+                        reward: 'No special title'
+                    },
+                    // Secret Achievements
+                    {
+                        id: 'achv11',
+                        title: 'Shadow Clicker',
+                        description: 'Earn 500,000 coins without any upgrades.',
+                        condition: () => coins >= 500000 && upgrades.every(upg => upg.level === 0),
+                        unlocked: false,
+                        icon: 'fas fa-user-secret',
+                        secret: true,
+                        reward: 'Shadow Master'
+                    },
+                    {
+                        id: 'achv12',
+                        title: 'Silent Miner',
+                        description: 'Earn 10,000 coins without purchasing any auto upgrades.',
+                        condition: () => coins >= 10000 && upgrades.filter(upg => upg.type === 'auto').every(upg => upg.level === 0),
+                        unlocked: false,
+                        icon: 'fas fa-meteor',
+                        secret: true,
+                        reward: 'Silent Storm'
+                    },
+                    // Add more secret achievements as needed
+                ];
+
+                // DOM Elements
+                const coinCount = document.getElementById('coin-count');
+                const expCount = document.getElementById('exp-count');
+                const clickButton = document.getElementById('click-button');
+                const upgradesContainer = document.getElementById('upgrades-container');
+                const achievementsButton = document.getElementById('achievements-button');
+                const achievementsModal = document.getElementById('achievements-modal');
+                const closeAchievements = document.getElementById('close-achievements');
+                const achievementsList = document.getElementById('achievements-list');
+                const achievementPopup = document.getElementById('achievement-popup');
+                const popupDescription = document.getElementById('popup-description');
+                const settingsButton = document.getElementById('settings-button');
+                const settingsModal = document.getElementById('settings-modal');
+                const closeSettings = document.getElementById('close-settings');
+                const resetGameButton = document.getElementById('reset-game-button');
+                const levelDisplay = document.getElementById('level-display');
+                const progressBar = document.getElementById('progress-bar');
+                const progressText = document.getElementById('progress-text');
+                const rebirthModal = document.getElementById('rebirth-modal');
+                const closeRebirth = document.getElementById('close-rebirth');
+                const rebirthButton = document.getElementById('rebirth-button');
+                const achievementsCounter = document.getElementById('achievements-counter');
+                const rebirthCounter = document.getElementById('rebirth-counter');
+
+                // Initialize Upgrades and Achievements UI
+                function initializeUI() {
+                    // Render Upgrades
+                    upgrades.forEach(upg => {
+                        const upgradeCard = document.createElement('div');
+                        upgradeCard.classList.add('upgrade-card');
+                        upgradeCard.id = upg.id;
+                        upgradeCard.style.display = 'none'; // Initially hidden
+
+                        const icon = document.createElement('i');
+                        // Split the icon classes and add them separately
+                        upg.icon.split(' ').forEach(cls => icon.classList.add(cls));
+                        icon.classList.add('upgrade-icon');
+
+                        const title = document.createElement('div');
+                        title.classList.add('upgrade-title');
+                        title.innerText = upg.name;
+
+                        const desc = document.createElement('div');
+                        desc.classList.add('upgrade-description');
+                        desc.innerText = upg.description;
+
+                        const cost = document.createElement('div');
+                        cost.classList.add('upgrade-cost');
+                        cost.innerText = `Cost: ${formatNumber(upg.cost)} Coins`;
+
+                        const level = document.createElement('div');
+                        level.classList.add('upgrade-level');
+                        level.innerText = `Level: ${upg.level}`;
+
+                        const purchaseBtn = document.createElement('button');
+                        purchaseBtn.classList.add('upgrade-button');
+                        purchaseBtn.innerHTML = `<i class="fas fa-shopping-cart"></i> Purchase`;
+                        purchaseBtn.onclick = (e) => {
+                            e.stopPropagation(); // Prevent triggering the card's hover effect
+                            purchaseUpgrade(upg.id);
+                        };
+
+                        upgradeCard.appendChild(icon);
+                        upgradeCard.appendChild(title);
+                        upgradeCard.appendChild(desc);
+                        upgradeCard.appendChild(cost);
+                        upgradeCard.appendChild(level);
+                        upgradeCard.appendChild(purchaseBtn);
+
+                        // Add hover effect with halo glow
+                        upgradeCard.addEventListener('mouseenter', () => {
+                            upgradeCard.style.boxShadow = '0 0 15px #ff9800';
+                        });
+
+                        upgradeCard.addEventListener('mouseleave', () => {
+                            upgradeCard.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)';
+                        });
+
+                        upgradesContainer.appendChild(upgradeCard);
+                    });
+
+                    // Render Achievements in Modal
+                    achievements.forEach(achv => {
+                        const achvDiv = document.createElement('div');
+                        achvDiv.classList.add('achievement-item');
+                        if (achv.secret) achvDiv.classList.add('secret'); // Add secret class
+                        achvDiv.id = achv.id;
+
+                        const achvIcon = document.createElement('i');
+                        // Split the icon classes and add them separately
+                        achv.icon.split(' ').forEach(cls => achvIcon.classList.add(cls));
+                        achvIcon.classList.add('achievement-icon');
+
+                        const achvTitle = document.createElement('div');
+                        achvTitle.classList.add('achievement-title');
+                        achvTitle.innerText = achv.title;
+
+                        achvDiv.appendChild(achvTitle);
+                        achvDiv.appendChild(achvIcon);
+
+
+                        if (!achv.secret) {
+                            const achvDesc = document.createElement('div');
+                            achvDesc.classList.add('achievement-description');
+                            achvDesc.innerText = achv.description;
+                            achvDiv.appendChild(achvDesc);
+                        }
+
+
+
+                        // Add locked overlay if not unlocked
+                        if (!achv.unlocked) {
+                            if (!achv.secret) {
+                                const lockedOverlay = document.createElement('div');
+                                lockedOverlay.style.position = 'absolute';
+                                lockedOverlay.style.top = '0';
+                                lockedOverlay.style.left = '0';
+                                lockedOverlay.style.width = '100%';
+                                lockedOverlay.style.height = '100%';
+                                lockedOverlay.style.backgroundColor = 'rgba(0,0,0,0.6)';
+                                lockedOverlay.style.borderRadius = '15px';
+                                lockedOverlay.innerHTML = `<i class="fas fa-lock" style="position:absolute; top:50%; left:50%; transform: translate(-50%, -50%); font-size:24px;"></i>`;
+                                achvDiv.appendChild(lockedOverlay);
+                            } else {
+                                // For secret achievements, overlay says "Secret" with icon
+                                const secretOverlay = document.createElement('div');
+                                secretOverlay.style.position = 'absolute';
+                                secretOverlay.style.bottom = '10px';
+                                secretOverlay.style.right = '10px';
+                                secretOverlay.style.backgroundColor = 'rgba(0,0,0,0.7)';
+                                secretOverlay.style.color = '#ff9800';
+                                secretOverlay.style.padding = '2px 6px';
+                                secretOverlay.style.borderRadius = '12px';
+                                secretOverlay.style.fontSize = '12px';
+                                secretOverlay.innerHTML = `<i class="fas fa-lock"></i> Secret`;
+                                achvDiv.appendChild(secretOverlay);
+                            }
+                        }
+
+                        achievementsList.appendChild(achvDiv);
+                    });
+
+                    // Initially display upgrades with no prerequisites
+                    upgrades.forEach(upg => {
+                        if (!upg.prerequisite) {
+                            const upgradeCard = document.getElementById(upg.id);
+                            if (upgradeCard) {
+                                upgradeCard.style.display = 'flex';
+                            }
+                        }
+                    });
+                }
+
+                // Format Number with K, M, B suffixes
+                function formatNumber(num) {
+                    if (num >= 1000000000) {
+                        return (num / 1000000000).toFixed(2) + 'B';
+                    } else if (num >= 1000000) {
+                        return (num / 1000000).toFixed(2) + 'M';
+                    } else if (num >= 1000) {
+                        return (num / 1000).toFixed(2) + 'K';
+                    }
+                    return num.toFixed();
+                }
+
+                // Update Resource Display and Calculate Effects
+                function updateDisplay() {
+                    coinCount.innerText = formatNumber(coins);
+                    expCount.innerText = formatNumber(exp);
+                    levelDisplay.firstChild.textContent = `Level: ${level}`;
+                    calculateEffects();
+                    updateUpgradesUI();
+                    checkAchievements();
+                    updateAchievementsCounter();
+                    updateProgressBar();
+                    displaySpecialTitle();
+                    updateRebirthCounter();
+                }
+
+                // Calculate coinsPerClick and coinsPerSecond based on upgrades
+                function calculateEffects() {
+                    coinsPerClick = 1; // Base value
+                    coinsPerSecond = 0; // Base value
+
+                    upgrades.forEach(upg => {
+                        if (upg.type === 'click') {
+                            if (upg.multiplier > 1) {
+                                coinsPerClick *= Math.pow(upg.multiplier, upg.level);
+                            }
+                            coinsPerClick += upg.addition * upg.level;
+                        } else if (upg.type === 'auto') {
+                            coinsPerSecond += upg.addition * upg.level;
+                        }
+                    });
+
+                    coinsPerClick *= rebirthBonus; // Apply rebirth bonuses
+                    coinsPerSecond *= rebirthBonus;
+                }
+
+                // Handle Click Button
+                clickButton.addEventListener('click', () => {
+                    coins += coinsPerClick;
+                    exp += coinsPerClick; // Assign exp based on coins per click
+                    animateClick();
+                    emitWaterRipple();
+                    updateDisplay();
+                    checkLevelUp();
+                });
+
+                // Animate Click Button
+                function animateClick() {
+                    clickButton.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        clickButton.style.transform = 'scale(1)';
+                    }, 100);
+                }
+
+                // Emit Water Ripple Effect
+                function emitWaterRipple() {
+                    const ripple = document.createElement('span');
+                    ripple.classList.add('ripple');
+                    clickButton.appendChild(ripple);
+
+                    // Styling the ripple
+                    ripple.style.width = ripple.style.height = Math.max(clickButton.clientWidth, clickButton.clientHeight) + 'px';
+                    ripple.style.left = (clickButton.clientWidth / 2 - ripple.offsetWidth / 2) + 'px';
+                    ripple.style.top = (clickButton.clientHeight / 2 - ripple.offsetHeight / 2) + 'px';
+                    ripple.style.borderRadius = '50%';
+                    ripple.style.backgroundColor = 'rgba(255, 152, 0, 0.4)';
+                    ripple.style.position = 'absolute';
+                    ripple.style.transform = 'scale(0)';
+                    ripple.style.animation = 'ripple 0.6s linear';
+
+                    // Remove the ripple after animation
+                    ripple.addEventListener('animationend', () => {
+                        ripple.remove();
+                    });
+                }
+
+                // Purchase Upgrade
+                function purchaseUpgrade(id) {
+                    const upgrade = upgrades.find(upg => upg.id === id);
+                    if (upgrade && coins >= upgrade.cost) {
+                        coins -= upgrade.cost;
+                        upgrade.level += 1;
+                        // Update cost with exponential increase
+                        // Exponential factor set to 1.8 to make upgrades significantly more expensive
+                        upgrade.cost = Math.floor(upgrade.baseCost * Math.pow(1.8, upgrade.level));
+                        updateDisplay();
+                        animatePurchase(id);
+                        checkUpgradeLevel(id);
+                        revealDependentUpgrades(upgrade.id);
+                        saveGame(); // Save after purchase
+                    }
+                }
+
+                // Animate Purchase
+                function animatePurchase(id) {
+                    const upgradeCard = document.getElementById(id);
+                    if (!upgradeCard) return;
+                    upgradeCard.style.transform = 'scale(1.05)';
+                    upgradeCard.style.boxShadow = '0 8px 20px rgba(0,0,0,0.5)';
+                    setTimeout(() => {
+                        upgradeCard.style.transform = 'scale(1)';
+                        upgradeCard.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)';
+                    }, 200);
+                }
+
+                // Update Upgrades UI
+                function updateUpgradesUI() {
+                    upgrades.forEach(upg => {
+                        const upgradeCard = document.getElementById(upg.id);
+                        if (!upgradeCard) return; // Safety check
+
+                        const purchaseBtn = upgradeCard.querySelector('.upgrade-button');
+                        const costDiv = upgradeCard.querySelector('.upgrade-cost');
+                        const levelDiv = upgradeCard.querySelector('.upgrade-level');
+
+                        if (!purchaseBtn || !costDiv || !levelDiv) return; // Safety check
+
+                        costDiv.innerText = `Cost: ${formatNumber(upg.cost)} Coins`;
+                        levelDiv.innerText = `Level: ${upg.level}`;
+
+                        if (coins >= upg.cost && upg.level < upg.maxLevel) {
+                            purchaseBtn.disabled = false;
+                        } else {
+                            purchaseBtn.disabled = true;
+                        }
+                    });
+                }
+
+                // Check if upgrade has reached max level to replace it
+                function checkUpgradeLevel(id) {
+                    const upgrade = upgrades.find(upg => upg.id === id);
+                    if (upgrade && upgrade.level >= upgrade.maxLevel) {
+                        const upgradeCard = document.getElementById(id);
+                        if (upgradeCard) {
+                            // Hide current upgrade
+                            upgradeCard.style.display = 'none';
+                            // Determine next tier upgrade
+                            const nextTierUpgrade = upgrades.find(upg => upg.prerequisite === id && upg.tier === upgrade.tier + 1);
+                            if (nextTierUpgrade) {
+                                const nextUpgradeCard = document.getElementById(nextTierUpgrade.id);
+                                if (nextUpgradeCard) {
+                                    nextUpgradeCard.style.display = 'flex';
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Reveal Dependent Upgrades
+                function revealDependentUpgrades(purchasedUpgradeId) {
+                    const purchasedUpgrade = upgrades.find(upg => upg.id === purchasedUpgradeId);
+                    if (purchasedUpgrade && purchasedUpgrade.level >= purchasedUpgrade.maxLevel) {
+                        upgrades.forEach(upg => {
+                            if (upg.prerequisite === purchasedUpgradeId) {
+                                const upgradeCard = document.getElementById(upg.id);
+                                if (upgradeCard && upgradeCard.style.display === 'none') {
+                                    upgradeCard.style.display = 'flex';
+                                }
+                            }
+                        });
+                    }
+                }
+
+                // Ensure correct upgrades are displayed on load
+                // Ensure correct upgrades are displayed based on their tiers and prerequisites
+                function ensureCorrectUpgradesDisplayed() {
+                    upgrades.forEach(upg => {
+                        const upgradeCard = document.getElementById(upg.id);
+                        if (upgradeCard) {
+                            // If the upgrade has a prerequisite, check if it's met
+                            if (upg.prerequisite) {
+                                const prereqUpgrade = upgrades.find(pr => pr.id === upg.prerequisite);
+                                if (prereqUpgrade && prereqUpgrade.level >= prereqUpgrade.maxLevel) {
+                                    // Prerequisite met; show this upgrade
+                                    upgradeCard.style.display = 'flex';
+                                } else {
+                                    // Prerequisite not met; hide this upgrade
+                                    upgradeCard.style.display = 'none';
+                                }
+                            } else {
+                                // No prerequisite; show the upgrade
+                                upgradeCard.style.display = 'flex';
+                            }
+
+                            // Additionally, if the upgrade itself has reached max level, hide it
+                            if (upg.level >= upg.maxLevel) {
+                                upgradeCard.style.display = 'none';
+                                // Reveal the next tier upgrade, if any
+                                const nextTierUpgrade = upgrades.find(nextUpg => nextUpg.prerequisite === upg.id && nextUpg.tier === upg.tier + 1);
+                                if (nextTierUpgrade) {
+                                    const nextUpgradeCard = document.getElementById(nextTierUpgrade.id);
+                                    if (nextUpgradeCard) {
+                                        nextUpgradeCard.style.display = 'flex';
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Achievements Logic
+                function checkAchievements() {
+                    achievements.forEach(achv => {
+                        if (!achv.unlocked && achv.condition()) {
+                            achv.unlocked = true;
+                            unlockAchievement(achv.id);
+                        }
+                    });
+                }
+
+                // Unlock Achievement
+                function unlockAchievement(id) {
+                    const achvDiv = document.getElementById(id);
+                    if (!achvDiv) return; // Safety check
+
+                    achvDiv.classList.add('unlocked');
+                    // Replace lock icon with check mark
+                    const overlays = achvDiv.querySelectorAll('div');
+                    overlays.forEach(overlay => overlay.remove());
+
+                    if (!achvDiv.classList.contains('secret')) {
+                        const checkMark = document.createElement('div');
+                        checkMark.style.position = 'absolute';
+                        checkMark.style.top = '0';
+                        checkMark.style.left = '0';
+                        checkMark.style.width = '100%';
+                        checkMark.style.height = '100%';
+                        checkMark.style.backgroundColor = 'rgba(0,0,0,0.6)';
+                        checkMark.style.borderRadius = '15px';
+                        checkMark.innerHTML = `<i class="fas fa-check" style="position:absolute; top:50%; left:50%; transform: translate(-50%, -50%); font-size:24px; color: #4caf50;"></i>`;
+                        achvDiv.appendChild(checkMark);
+                    }
+
+                    showAchievementPopup(id);
+                    updateAchievementsCounter();
+
+                    // Assign special title if it's a secret achievement
+                    const achv = achievements.find(a => a.id === id);
+                    if (achv && achv.secret) {
+                        specialTitle = achv.reward;
+                        updateDisplay();
+                    }
+
+                    saveGame(); // Save after unlocking achievement
+                }
+
+                // Show Achievement Popup
+                function showAchievementPopup(id) {
+                    const achv = achievements.find(a => a.id === id);
+                    if (!achv) return;
+
+                    if (achv.secret) {
+                        popupDescription.innerHTML = `<i class="${achv.icon}"></i> Secret`;
+                    } else {
+                        popupDescription.innerText = `${achv.title}\n${achv.description}`;
+                    }
+                    achievementPopup.classList.add('show');
+
+                    // Play confetti effect
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { x: 0, y: 0 }, // From top-left corner
+                        colors: ['#ff9800', '#ffc107', '#ff5722']
+                    });
+
+                    // Hide popup after 3 seconds
+                    setTimeout(() => {
+                        achievementPopup.classList.remove('show');
+                    }, 3000);
+                }
+
+                // Settings Modal Functionality
+                settingsButton.addEventListener('click', () => {
+                    settingsModal.style.display = 'flex';
+                });
+
+                closeSettings.addEventListener('click', () => {
+                    settingsModal.style.display = 'none';
+                });
+
+                window.addEventListener('click', (event) => {
+                    if (event.target == settingsModal) {
+                        settingsModal.style.display = 'none';
+                    }
+                });
+
+                // Achievements Modal Functionality
+                achievementsButton.addEventListener('click', () => {
+                    achievementsModal.style.display = 'flex';
+                });
+
+                closeAchievements.addEventListener('click', () => {
+                    achievementsModal.style.display = 'none';
+                });
+
+                window.addEventListener('click', (event) => {
+                    if (event.target == achievementsModal) {
+                        achievementsModal.style.display = 'none';
+                    }
+                });
+
+                // Rebirth Modal Functionality
+                rebirthButton.addEventListener('click', () => {
+                    rebirth();
+                    rebirthModal.style.display = 'none';
+                });
+
+                closeRebirth.addEventListener('click', () => {
+                    rebirthModal.style.display = 'none';
+                });
+
+                window.addEventListener('click', (event) => {
+                    if (event.target == rebirthModal) {
+                        rebirthModal.style.display = 'none';
+                    }
+                });
+
+                // Reset Game Functionality
+                resetGameButton.addEventListener('click', () => {
+                    if (confirm('Are you sure you want to reset the game? All progress will be lost.')) {
+                        resetGame();
+                        settingsModal.style.display = 'none';
+                    }
+                });
+
+                // Reset Game
+                function resetGame() {
+                    coins = 0;
+                    exp = 0;
+                    coinsPerClick = 1;
+                    coinsPerSecond = 0;
+                    level = 1;
+                    rebirths = 0;
+                    rebirthBonus = 1;
+                    specialTitle = ""; // Reset special title
+                    requiredExp = 100; // Reset required EXP
+
+                    upgrades.forEach(upg => {
+                        upg.level = 0;
+                        upg.cost = upg.baseCost;
+                        upg.prerequisiteMet = false; // Custom property to manage prerequisites
+                    });
+                    achievements.forEach(achv => {
+                        achv.unlocked = false;
+                        const achvDiv = document.getElementById(achv.id);
+                        if (achvDiv) {
+                            achvDiv.classList.remove('unlocked');
+                            // Remove check mark if present
+                            const checkMark = achvDiv.querySelector('div');
+                            if (checkMark && !achv.secret) {
+                                achvDiv.removeChild(checkMark);
+                            }
+                            // Add lock overlay for regular achievements
+                            if (!achv.secret) {
+                                const lockedOverlay = document.createElement('div');
+                                lockedOverlay.style.position = 'absolute';
+                                lockedOverlay.style.top = '0';
+                                lockedOverlay.style.left = '0';
+                                lockedOverlay.style.width = '100%';
+                                lockedOverlay.style.height = '100%';
+                                lockedOverlay.style.backgroundColor = 'rgba(0,0,0,0.6)';
+                                lockedOverlay.style.borderRadius = '15px';
+                                lockedOverlay.innerHTML = `<i class="fas fa-lock" style="position:absolute; top:50%; left:50%; transform: translate(-50%, -50%); font-size:24px;"></i>`;
+                                achvDiv.appendChild(lockedOverlay);
+                            } else {
+                                // For secret achievements, reset to show "Secret" label
+                                const secretOverlay = achvDiv.querySelector('div');
+                                if (secretOverlay) {
+                                    secretOverlay.remove();
+                                }
+                                const secretLabel = document.createElement('div');
+                                secretLabel.style.position = 'absolute';
+                                secretLabel.style.bottom = '10px';
+                                secretLabel.style.right = '10px';
+                                secretLabel.style.backgroundColor = 'rgba(0,0,0,0.7)';
+                                secretLabel.style.color = '#ff9800';
+                                secretLabel.style.padding = '2px 6px';
+                                secretLabel.style.borderRadius = '12px';
+                                secretLabel.style.fontSize = '12px';
+                                secretLabel.innerHTML = `<i class="fas fa-lock"></i> Secret`;
+                                achvDiv.appendChild(secretLabel);
+                            }
+                        }
+                    });
+
+                    // Hide all upgrades and reveal only those with no prerequisites
+                    upgrades.forEach(upg => {
+                        const upgradeCard = document.getElementById(upg.id);
+                        if (upgradeCard) {
+                            if (!upg.prerequisite) {
+                                upgradeCard.style.display = 'flex';
+                            } else {
+                                upgradeCard.style.display = 'none';
+                            }
+                        }
+                    });
+
+                    updateDisplay();
+                    saveGame(); // Save after reset
+                }
+
+                // Level Up Logic
+                function checkLevelUp() {
+                    while (exp >= requiredExp) {
+                        exp -= requiredExp;
+                        level += 1;
+                        // Exponentially increase required EXP (double each level)
+                        requiredExp = Math.floor(requiredExp * 2); // Double the EXP requirement
+                        // Reward for level up (optional)
+                        giveLevelReward();
+                        updateDisplay();
+                        // Check if level 100 is reached for rebirth
+                        if (level === 100) {
+                            showRebirthModal();
+                        }
+                    }
+                }
+
+                // Give Level Reward
+                function giveLevelReward() {
+                    // Example rewards: titles or background changes
+                    // For simplicity, we'll change the background color based on level
+                    document.querySelector('.game-container').style.backgroundColor = `rgba(30, 30, 30, 0.95)`;
+                }
+
+                // Show Rebirth Modal
+                function showRebirthModal() {
+                    rebirthModal.style.display = 'flex';
+                }
+
+                // Rebirth Function
+                function rebirth() {
+                    if (level < 100) return; // Ensure level 100 is reached
+                    rebirths += 1;
+                    rebirthBonus *= 2; // Example: each rebirth doubles the bonus
+                    // Reset progress
+                    coins = 0;
+                    exp = 0;
+                    coinsPerClick = 1;
+                    coinsPerSecond = 0;
+                    level = 1;
+                    requiredExp = 100; // Reset required EXP
+                    upgrades.forEach(upg => {
+                        upg.level = 0;
+                        upg.cost = upg.baseCost;
+                        upg.prerequisiteMet = false; // Custom property to manage prerequisites
+                        // Hide all upgrades except those with no prerequisites
+                        const upgradeCard = document.getElementById(upg.id);
+                        if (upgradeCard) {
+                            if (!upg.prerequisite) {
+                                upgradeCard.style.display = 'flex';
+                            } else {
+                                upgradeCard.style.display = 'none';
+                            }
+                        }
+                    });
+                    achievements.forEach(achv => {
+                        achv.unlocked = false;
+                        const achvDiv = document.getElementById(achv.id);
+                        if (achvDiv) {
+                            achvDiv.classList.remove('unlocked');
+                            // Remove check mark if present
+                            const checkMark = achvDiv.querySelector('div');
+                            if (checkMark && !achv.secret) {
+                                achvDiv.removeChild(checkMark);
+                            }
+                            // Add lock overlay for regular achievements
+                            if (!achv.secret) {
+                                const lockedOverlay = document.createElement('div');
+                                lockedOverlay.style.position = 'absolute';
+                                lockedOverlay.style.top = '0';
+                                lockedOverlay.style.left = '0';
+                                lockedOverlay.style.width = '100%';
+                                lockedOverlay.style.height = '100%';
+                                lockedOverlay.style.backgroundColor = 'rgba(0,0,0,0.6)';
+                                lockedOverlay.style.borderRadius = '15px';
+                                lockedOverlay.innerHTML = `<i class="fas fa-lock" style="position:absolute; top:50%; left:50%; transform: translate(-50%, -50%); font-size:24px;"></i>`;
+                                achvDiv.appendChild(lockedOverlay);
+                            } else {
+                                // For secret achievements, reset to show "Secret" label
+                                const secretOverlay = achvDiv.querySelector('div');
+                                if (secretOverlay) {
+                                    secretOverlay.remove();
+                                }
+                                const secretLabel = document.createElement('div');
+                                secretLabel.style.position = 'absolute';
+                                secretLabel.style.bottom = '10px';
+                                secretLabel.style.right = '10px';
+                                secretLabel.style.backgroundColor = 'rgba(0,0,0,0.7)';
+                                secretLabel.style.color = '#ff9800';
+                                secretLabel.style.padding = '2px 6px';
+                                secretLabel.style.borderRadius = '12px';
+                                secretLabel.style.fontSize = '12px';
+                                secretLabel.innerHTML = `<i class="fas fa-lock"></i> Secret`;
+                                achvDiv.appendChild(secretLabel);
+                            }
+                        }
+                    });
+                    rebirthBonus *= 1.5; // Example bonus from rebirth
+                    updateDisplay();
+                    alert('Rebirth successful! Your bonuses have been upgraded.');
+                    saveGame(); // Save after rebirth
+                }
+
+                // Update Achievements Counter on Achievements Modal
+                function updateAchievementsCounter() {
+                    const lockedAchievements = achievements.filter(achv => !achv.unlocked).length;
+                    if (lockedAchievements > 0) {
+                        achievementsCounter.style.display = 'flex';
+                        achievementsCounter.innerText = lockedAchievements;
+                    } else {
+                        achievementsCounter.style.display = 'none';
+                    }
+                }
+
+                // Update Progress Bar
+                function updateProgressBar() {
+                    const currentProgress = exp;
+                    const progressPercentage = Math.min((currentProgress / requiredExp) * 100, 100);
+                    progressBar.style.width = `${progressPercentage}%`;
+                    progressText.innerText = `${formatNumber(currentProgress)} / ${formatNumber(requiredExp)} EXP`;
+                }
+
+                // Display Special Title from Secret Achievements
+                function displaySpecialTitle() {
+                    if (specialTitle) {
+                        // Display the special title somewhere prominent, e.g., above the header
+                        let titleElement = document.getElementById('special-title');
+                        if (!titleElement) {
+                            titleElement = document.createElement('div');
+                            titleElement.id = 'special-title';
+                            titleElement.style.position = 'absolute';
+                            titleElement.style.top = '70px';
+                            titleElement.style.fontSize = '20px';
+                            titleElement.style.color = '#ff9800';
+                            titleElement.style.textShadow = '1px 1px 3px rgba(0,0,0,0.5)';
+                            document.querySelector('.game-container').appendChild(titleElement);
+                        }
+                        titleElement.textContent = `Title: ${specialTitle}`;
+                    } else {
+                        const titleElement = document.getElementById('special-title');
+                        if (titleElement) {
+                            titleElement.textContent = '';
+                        }
+                    }
+                }
+
+                // Update Rebirth Counter
+                function updateRebirthCounter() {
+                    rebirthCounter.innerText = `Rebirths: ${rebirths}`;
+                }
+
+                // Initialize Upgrades and Achievements UI
+                initializeUI();
+                updateDisplay();
+
+                // Auto-Generate Coins Per Second
+                setInterval(() => {
+                    coins += coinsPerSecond * rebirthBonus;
+                    exp += (coinsPerSecond * rebirthBonus) * 0.1; // Assign some exp based on auto coins
+                    updateDisplay();
+                    checkLevelUp();
+                }, 1000);
+
+                // Local Storage Functions
+                function saveGame() {
+                    const gameState = {
+                        coins,
+                        exp,
+                        coinsPerClick,
+                        coinsPerSecond,
+                        level,
+                        rebirths,
+                        rebirthBonus,
+                        specialTitle,
+                        requiredExp,
+                        upgrades,
+                        achievements
+                    };
+                    localStorage.setItem('idleClickerGameState', JSON.stringify(gameState));
+                }
+
+                function loadGame() {
+                    const savedState = JSON.parse(localStorage.getItem('idleClickerGameState'));
+                    if (savedState) {
+                        coins = savedState.coins;
+                        exp = savedState.exp;
+                        coinsPerClick = savedState.coinsPerClick;
+                        coinsPerSecond = savedState.coinsPerSecond;
+                        level = savedState.level;
+                        rebirths = savedState.rebirths;
+                        rebirthBonus = savedState.rebirthBonus;
+                        specialTitle = savedState.specialTitle;
+                        requiredExp = savedState.requiredExp;
+
+                        upgrades.forEach((upg, index) => {
+                            upg.level = savedState.upgrades[index].level;
+                            upg.cost = savedState.upgrades[index].cost;
+                        });
+
+                        achievements.forEach((achv, index) => {
+                            achv.unlocked = savedState.achievements[index].unlocked;
+                            if (achv.unlocked) {
+                                const achvDiv = document.getElementById(achv.id);
+                                if (achvDiv) {
+                                    achvDiv.classList.add('unlocked');
+                                    // Remove existing overlays
+                                    const overlays = achvDiv.querySelectorAll('div');
+                                    overlays.forEach(overlay => overlay.remove());
+                                    if (!achv.secret) {
+                                        // Replace lock with check mark
+                                        const checkMark = document.createElement('div');
+                                        checkMark.style.position = 'absolute';
+                                        checkMark.style.top = '0';
+                                        checkMark.style.left = '0';
+                                        checkMark.style.width = '100%';
+                                        checkMark.style.height = '100%';
+                                        checkMark.style.backgroundColor = 'rgba(0,0,0,0.6)';
+                                        checkMark.style.borderRadius = '15px';
+                                        checkMark.innerHTML = `<i class="fas fa-check" style="position:absolute; top:50%; left:50%; transform: translate(-50%, -50%); font-size:24px; color: #4caf50;"></i>`;
+                                        achvDiv.appendChild(checkMark);
+                                    } else {
+                                        // For secret achievements, add "Secret" label
+                                        const secretLabel = document.createElement('div');
+                                        secretLabel.style.position = 'absolute';
+                                        secretLabel.style.bottom = '10px';
+                                        secretLabel.style.right = '10px';
+                                        secretLabel.style.backgroundColor = 'rgba(0,0,0,0.7)';
+                                        secretLabel.style.color = '#ff9800';
+                                        secretLabel.style.padding = '2px 6px';
+                                        secretLabel.style.borderRadius = '12px';
+                                        secretLabel.style.fontSize = '12px';
+                                        secretLabel.innerHTML = `<i class="fas fa-check"></i> Secret`;
+                                        achvDiv.appendChild(secretLabel);
+                                    }
+                                }
+                            }
+                        });
+
+                        calculateEffects();
+                        updateDisplay();
+
+                        // **Add this line to ensure upgrades are correctly displayed**
+                        ensureCorrectUpgradesDisplayed();
+                    }
+                }
+
+                // Load game state on initialization
+                loadGame();
+
+                // Save game state periodically
+                setInterval(saveGame, 5000); // Save every 5 seconds
+
+                // Save game state on unload
+                window.addEventListener('beforeunload', saveGame);
+            } catch (error) {
+                console.error('An error occurred:', error);
+            }
+        });
+    </script>
+</body>
+
+</html>
